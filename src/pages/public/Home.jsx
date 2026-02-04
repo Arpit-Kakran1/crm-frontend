@@ -49,7 +49,7 @@ const Home = () => {
 
         <div className="relative p-6 md:p-8">
           <div className="text-xs font-semibold tracking-wide text-blue-600">
-            Properies!!
+            Properties!!
           </div>
 
           <h1 className="mt-2 text-2xl md:text-3xl font-semibold text-crm-text leading-tight">
