@@ -22,30 +22,82 @@ import AdminSettings from '../pages/admin/AdminSettings.jsx';
 import NotFound from '../pages/NotFound.jsx';
 import { serverUrl } from '../utils/serverUrl.js';
 
-/* 🔐 AUTH GUARD */
-const ProtectedRoute = ({ user, children }) => {
+import api from '../utils/api';
+
+
+const ProtectedRoute = ({ user, authLoading, children }) => {
+  if (authLoading) {
+    return null; // or a loader
+  }
+
   if (!user) {
     return <Navigate to="/admin/login" replace />;
   }
+
   return children;
 };
 
+
 export default function AppRoutes() {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // useEffect(() => {
+  //   const checkUser = async () => {
+  //     try {
+  //       const res = await axios.get(`${serverUrl}/api/auth/me`, {
+  //         withCredentials: true,
+  //       });
+  //       setUser(res.data.user);
+  //     } catch {
+  //       setUser(null);
+  //     }
+  //   };
+  //   checkUser();
+  // }, []);
+
+  // useEffect(() => {
+  //   const checkUser = async () => {
+  //     try {
+  //       const token = localStorage.getItem('accessToken');
+
+  //       if (!token) {
+  //         setUser(null);
+  //         return;
+  //       }
+
+  //       const res = await axios.get(`${serverUrl}/api/auth/me`, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+
+  //       setUser(res.data.user);
+  //     } catch (err) {
+  //       console.log('Auth check failed');
+  //       setUser(null);
+  //     }
+  //   };
+
+  //   checkUser();
+  // }, []);
 
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const res = await axios.get(`${serverUrl}/api/auth/me`, {
-          withCredentials: true,
-        });
+        const res = await api.get('/api/auth/me');
         setUser(res.data.user);
-      } catch {
+      } catch (err) {
         setUser(null);
+      } finally {
+        setAuthLoading(false);
       }
     };
+
     checkUser();
   }, []);
+
+
 
   return (
     <Routes>
@@ -68,11 +120,12 @@ export default function AppRoutes() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute user={user}>
+          <ProtectedRoute user={user} authLoading={authLoading}>
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
+
         <Route index element={<AdminDashboard />} />
         <Route path="properties" element={<AdminProperties />} />
         <Route path="enquiries" element={<AdminEnquiries />} />

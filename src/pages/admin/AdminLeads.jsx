@@ -1,30 +1,5 @@
-// import Card from '../../components/ui/Card.jsx'
-// import EmptyState from '../../components/ui/EmptyState.jsx'
-
-// export default function AdminLeads() {
-//   return (
-//     <div className="space-y-4">
-//       <div>
-//         <div className="text-sm font-semibold text-crm-text">Leads</div>
-//         <div className="text-sm text-crm-muted">
-//           Leads backend API not implemented yet
-//         </div>
-//       </div>
-
-//       <Card className="bg-white">
-//         <div className="p-4">
-//           <EmptyState
-//             title="Leads feature coming soon"
-//             description="Backend API for leads management is not yet implemented."
-//           />
-//         </div>
-//       </Card>
-//     </div>
-//   )
-// }
 import { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
-
+import api from '../../utils/api.js'
 import Card from '../../components/ui/Card.jsx'
 import Table from '../../components/ui/Table.jsx'
 import Input from '../../components/ui/Input.jsx'
@@ -33,7 +8,6 @@ import Badge from '../../components/ui/Badge.jsx'
 import Modal from '../../components/ui/Modal.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
 
-import { serverUrl } from '../../utils/serverUrl.js'
 
 /* ---------------- STATUS COLOR ---------------- */
 const badgeColorForStatus = (status) => {
@@ -56,10 +30,7 @@ const AdminEnquiries = () => {
   const fetchEnquiries = async () => {
     try {
       setLoading(true)
-      const res = await axios.get(
-        `${serverUrl}/api/enquiries`,
-        { withCredentials: true }
-      )
+      const res = await api.get('/api/enquiries')
       setEnquiries(res.data.data || [])
     } catch (err) {
       console.error('Failed to fetch enquiries', err)
@@ -76,40 +47,37 @@ const AdminEnquiries = () => {
   const filtered = useMemo(() => {
     if (!q) return enquiries
     const query = q.toLowerCase()
+
     return enquiries.filter((e) =>
-      e.name.toLowerCase().includes(query) ||
-      e.phone.includes(query) ||
-      e.propertyId?.title?.toLowerCase().includes(query)
+      (e.name || '').toLowerCase().includes(query) ||
+      String(e.phone || '').includes(query) ||
+      (e.propertyId?.title || '').toLowerCase().includes(query)
     )
   }, [q, enquiries])
+
 
   /* ---------------- UPDATE STATUS ---------------- */
   const updateStatus = async (id, status) => {
     try {
-      await axios.put(
-        `${serverUrl}/api/enquiries/${id}`,
-        { status }, // MUST BE ENUM VALUE
-        { withCredentials: true }
-      )
+      await api.put(`/api/enquiries/${id}`, { status })
       fetchEnquiries()
     } catch (err) {
       console.error('Status update failed', err)
     }
   }
 
+
   /* ---------------- DELETE ---------------- */
   const deleteEnquiry = async (id) => {
     if (!confirm('Delete this enquiry?')) return
     try {
-      await axios.delete(
-        `${serverUrl}/api/enquiries/${id}`,
-        { withCredentials: true }
-      )
+      await api.delete(`/api/enquiries/${id}`)
       fetchEnquiries()
     } catch (err) {
       console.error('Delete failed', err)
     }
   }
+
 
   return (
     <div className="space-y-4">

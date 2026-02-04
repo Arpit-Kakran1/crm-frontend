@@ -26,6 +26,7 @@ import {
 
 import { serverUrl } from '../../utils/serverUrl.js'
 import { toast } from 'react-toastify'
+import api from '../../utils/api.js'
 
 function badgeColorForStatus(status) {
   if (status === 'Available') return 'green'
@@ -71,11 +72,8 @@ const AdminProperties = () => {
   const fetchProperties = async () => {
     try {
       setFetching(true);
-      const res = await axios.get(
-        `${serverUrl}/api/properties/getproperty`,
-        { withCredentials: true }
-      )
-      console.log(res);
+      const res = await api.get('/api/properties/getproperty');
+
       setProperties(res.data.data || [])
     } catch (err) {
       console.error('Failed to fetch properties', err)
@@ -95,17 +93,16 @@ const AdminProperties = () => {
       const formData = new FormData()
       formData.append('image', file)
 
-      const res = await axios.post(
-        `${serverUrl}/api/upload/image`,
+      const res = await api.post(
+        '/api/upload/image',
         formData,
         {
-          withCredentials: true,
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         }
-      )
-      console.log(res, "this is the result from the upload to the cloudinary")
+      );
+
       uploadedUrls.push(res.data.data.url)
     }
 
@@ -117,14 +114,13 @@ const AdminProperties = () => {
   const handleAddProperty = async (e) => {
     e.preventDefault()
     setLoading(true)
-    console.log(form)
+
     try {
-      // 1️⃣ upload image
+
       const imageUrl = await uploadImageToCloudinary()
       console.log(imageUrl, "this is the image url from the addProperty")
       // 2️⃣ create property
-      const res = await axios.post(
-        `${serverUrl}/api/properties/createproperty`,
+      const res = await api.post('/api/properties/createproperty',
         {
           title: form.title,
           location: form.location,
@@ -133,18 +129,18 @@ const AdminProperties = () => {
           status: form.status,
           description: form.description,
           images: imageUrl,
-          size: form.size,
-          bedrooms: form.bedrooms,
-          bathrooms: form.bathrooms,
-          parking: form.parking,
-          furnished: form.furnished,
-          floor: form.floor,
-          totalFloors: form.totalFloors,
-          facing: form.facing,
-        },
-        { withCredentials: true }
-      )
 
+          area: Number(form.area),
+          bedrooms: Number(form.bedrooms),
+          bathrooms: Number(form.bathrooms),
+          parking: Number(form.parking),
+          furnishing: form.furnishing,
+          floorNumber: Number(form.floorNumber),
+          totalFloors: Number(form.totalFloors),
+          facing: form.facing,
+          propertyAge: form.propertyAge,
+        },
+      )
 
       fetchProperties();
       // reset
@@ -161,6 +157,7 @@ const AdminProperties = () => {
       setOpen(false)
       toast.success('Property created successfully 🏡')
     } catch (error) {
+      console.log(error)
       toast.error(
         error?.response?.data?.message || 'Failed to create property'
       )
@@ -183,7 +180,6 @@ const AdminProperties = () => {
     try {
       let uploadedImages = []
 
-      // ✅ SAFE image check
       if (Array.isArray(imageFile) && imageFile.length > 0) {
         uploadedImages = await uploadImageToCloudinary()
       }
@@ -196,30 +192,27 @@ const AdminProperties = () => {
         status: form.status,
         description: form.description,
 
-        // ✅ BACKEND-CORRECT FIELD NAMES
-        area: form.area,
-        bedrooms: form.bedrooms,
-        bathrooms: form.bathrooms,
-        parking: form.parking,
+        area: form.area ? Number(form.area) : undefined,
+        bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
+        bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
+        parking: form.parking ? Number(form.parking) : undefined,
+        floorNumber: form.floorNumber ? Number(form.floorNumber) : undefined,
+        totalFloors: form.totalFloors ? Number(form.totalFloors) : undefined,
+
         furnishing: form.furnishing,
-        floorNumber: form.floorNumber,
-        totalFloors: form.totalFloors,
         facing: form.facing,
         propertyAge: form.propertyAge,
       }
 
-      // ✅ Only attach images if uploaded
+
       if (uploadedImages.length > 0) {
         payload.images = uploadedImages
       }
 
-      const res = await axios.put(
-        `${serverUrl}/api/properties/updateproperty/${selectedProperty._id}`,
-        payload,
-        { withCredentials: true }
-      )
-
-      console.log('Property updated:', res.data)
+      const res = await api.put(
+        `/api/properties/updateproperty/${selectedProperty._id}`,
+        payload
+      );
 
       await fetchProperties()
       setEditOpen(false)
@@ -228,6 +221,7 @@ const AdminProperties = () => {
       toast.success('Property Edited successfully 🏡')
 
     } catch (error) {
+      console.log(error)
       toast.error(
         error?.response?.data?.message || 'Failed to create property'
       )
@@ -243,9 +237,8 @@ const AdminProperties = () => {
     try {
       setLoading(true);
 
-      await axios.delete(
-        `${serverUrl}/api/properties/deleteproperty/${selectedProperty._id}`,
-        { withCredentials: true }
+      await api.delete(
+        `/api/properties/deleteproperty/${selectedProperty._id}`
       );
 
       setDeleteOpen(false);
@@ -530,14 +523,15 @@ const AdminProperties = () => {
               label={
                 <span className="flex items-center gap-2">
                   <FaRulerCombined className="text-orange-500" />
-                  Size (sqft)
+                  Area (sqft)
                 </span>
               }
-              value={form.size || ''}
+              value={form.area || ''}
               onChange={(e) =>
-                setForm({ ...form, size: e.target.value })
+                setForm({ ...form, area: e.target.value })
               }
             />
+
 
             <Input
               label={
@@ -578,18 +572,25 @@ const AdminProperties = () => {
               }
             />
 
-            <Input
-              label={
-                <span className="flex items-center gap-2">
-                  <FaCouch className="text-pink-500" />
-                  Furnished
-                </span>
-              }
-              value={form.furnished || ''}
-              onChange={(e) =>
-                setForm({ ...form, furnished: e.target.value })
-              }
-            />
+            <label className="block">
+              <div className="mb-1 flex items-center gap-2 text-sm font-medium text-crm-text">
+                <FaCouch className="text-pink-500" />
+                Furnishing
+              </div>
+              <select
+                className="w-full rounded-md border border-crm-border bg-white px-3 py-2 text-sm"
+                value={form.furnishing || ''}
+                onChange={(e) =>
+                  setForm({ ...form, furnishing: e.target.value })
+                }
+              >
+                <option value="">Select furnishing</option>
+                <option value="Unfurnished">Unfurnished</option>
+                <option value="Semi-Furnished">Semi-Furnished</option>
+                <option value="Fully Furnished">Fully Furnished</option>
+              </select>
+            </label>
+
 
             <label className="block">
               <div className="mb-1 flex items-center gap-2 text-sm font-medium text-crm-text">
@@ -700,99 +701,6 @@ const AdminProperties = () => {
       </Modal>
 
       {/* EDIT MODAL */}
-      {/* <Modal
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        title="Edit property"
-        size="lg"
-        footer={
-          <div className="flex items-center justify-end gap-2">
-            <Button variant="secondary" onClick={() => setEditOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleEditProperty}
-              disabled={loading}
-            >
-              {loading ? 'Updating…' : 'Update'}
-            </Button>
-          </div>
-        }
-      >
-        <form className="space-y-3">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <Input
-              label="Title"
-              value={form.title}
-              onChange={(e) =>
-                setForm({ ...form, title: e.target.value })
-              }
-            />
-            <Input
-              label="Location"
-              value={form.location}
-              onChange={(e) =>
-                setForm({ ...form, location: e.target.value })
-              }
-            />
-            <Input
-              label="Price (₹)"
-              value={form.price}
-              onChange={(e) =>
-                setForm({ ...form, price: e.target.value })
-              }
-            />
-            <Select
-              label="Type"
-              value={form.propertyType}
-              onChange={(e) =>
-                setForm({ ...form, propertyType: e.target.value })
-              }
-              options={[
-                { value: 'Flat', label: 'Flat' },
-                { value: 'Apartment', label: 'Apartment' },
-                { value: 'House', label: 'House' },
-                { value: 'Villa', label: 'Villa' },
-                { value: 'Plot', label: 'Plot' },
-                { value: 'Commercial', label: 'Commercial' },
-              ]}
-            />
-            <Select
-              label="Status"
-              value={form.status}
-              onChange={(e) =>
-                setForm({ ...form, status: e.target.value })
-              }
-              options={[
-                { value: 'Available', label: 'Available' },
-                { value: 'Booked', label: 'Booked' },
-                { value: 'Sold', label: 'Sold' },
-              ]}
-            />
-          </div>
-
-          <label className="block">
-            <div className="mb-1 text-sm font-medium text-crm-text">
-              Description
-            </div>
-            <textarea
-              className="w-full rounded-md border border-crm-border bg-white px-3 py-2 text-sm text-crm-text outline-none"
-              rows={4}
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-            />
-          </label>
-
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setImageFile(e.target.files[0])}
-          />
-        </form>
-      </Modal> */}
       <Modal
         open={editOpen}
         onClose={() => setEditOpen(false)}
@@ -953,18 +861,25 @@ const AdminProperties = () => {
               }
             />
 
-            <Input
-              label={
-                <span className="flex items-center gap-2">
-                  <FaCouch className="text-pink-500" />
-                  Furnishing
-                </span>
-              }
-              value={form.furnishing || ''}
-              onChange={(e) =>
-                setForm({ ...form, furnishing: e.target.value })
-              }
-            />
+            <label className="block">
+              <div className="mb-1 flex items-center gap-2 text-sm font-medium text-crm-text">
+                <FaCouch className="text-pink-500" />
+                Furnishing
+              </div>
+              <select
+                className="w-full rounded-md border border-crm-border bg-white px-3 py-2 text-sm"
+                value={form.furnishing || ''}
+                onChange={(e) =>
+                  setForm({ ...form, furnishing: e.target.value })
+                }
+              >
+                <option value="">Select furnishing</option>
+                <option value="Unfurnished">Unfurnished</option>
+                <option value="Semi-Furnished">Semi-Furnished</option>
+                <option value="Fully Furnished">Fully Furnished</option>
+              </select>
+            </label>
+
 
             {/* FACING (ENUM SAFE) */}
             <label className="block">
@@ -1028,7 +943,7 @@ const AdminProperties = () => {
                   setForm({ ...form, propertyAge: e.target.value })
                 }
               >
-                <option value="">Select property age</option>
+
                 <option value="New Construction">New Construction</option>
                 <option value="1-3 years">1-3 years</option>
                 <option value="3-5 years">3-5 years</option>

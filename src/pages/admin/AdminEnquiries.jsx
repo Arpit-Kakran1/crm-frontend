@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
-
+import api from '../../utils/api.js'
 import Card from '../../components/ui/Card.jsx'
 import Table from '../../components/ui/Table.jsx'
 import Input from '../../components/ui/Input.jsx'
@@ -22,10 +21,7 @@ const AdminEnquiries = () => {
   useEffect(() => {
     const fetchEnquiries = async () => {
       try {
-        const res = await axios.get(
-          `${serverUrl}/api/enquiries`,
-          { withCredentials: true }
-        )
+        const res = await api.get('/api/enquiries')
         setEnquiries(res.data.data || [])
       } catch (err) {
         console.error('Failed to fetch enquiries', err)
@@ -36,6 +32,7 @@ const AdminEnquiries = () => {
 
     fetchEnquiries()
   }, [])
+
 
   /* ---------------- SEARCH FILTER ---------------- */
   const filteredEnquiries = useMemo(() => {
@@ -49,10 +46,11 @@ const AdminEnquiries = () => {
       return (
         property.toLowerCase().includes(q.toLowerCase()) ||
         name.toLowerCase().includes(q.toLowerCase()) ||
-        phone.includes(q)
+        String(phone).includes(q)
       )
     })
   }, [q, enquiries])
+
 
   /* ---------------- DOWNLOAD CSV (NEW) ---------------- */
   const downloadCSV = () => {
@@ -73,7 +71,8 @@ const AdminEnquiries = () => {
       e.name,
       e.phone,
       e.email,
-      e.message.replace(/\n/g, ' '),
+      (e.message || '').replace(/\n/g, ' ')
+
     ])
 
     const csvContent = [
