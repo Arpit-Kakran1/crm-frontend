@@ -9,14 +9,24 @@ const AdminSettings = () => {
   /* ---------------- LOGOUT ---------------- */
   const handleLogout = async () => {
     try {
+      // optional: inform backend (not mandatory for JWT)
       await api.post('/api/auth/logout')
-      localStorage.removeItem('accessToken')
-      toast.success('Logged out successfully')
-      window.location.href = '/admin/login'
     } catch (err) {
-      toast.error('Logout failed')
+      // ignore backend errors
+    } finally {
+      // 🔐 REAL LOGOUT (JWT way)
+      localStorage.removeItem('accessToken')
+
+      // remove token from axios permanently
+      delete api.defaults.headers.common.Authorization
+
+      toast.success('Logged out successfully')
+
+      // hard redirect = safest
+      window.location.href = '/admin/login'
     }
   }
+
 
   return (
     <div className="space-y-6 max-w-2xl">
