@@ -10,6 +10,7 @@ import {
   FiLogOut,
   FiSettings,
 } from 'react-icons/fi'
+import { toast } from 'react-toastify'
 
 
 const navItems = [
