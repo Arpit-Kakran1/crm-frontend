@@ -108,21 +108,16 @@ export default function Sidebar({ compact = false }) {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
 
-  const onLogout = async () => {
-    setLoading(true)
+  const handleLogout = async () => {
+    setLoading(true);
     try {
-      const res = await axios.post(
-        `${serverUrl}/api/auth/logout`,
-        {},
-        { withCredentials: true }
-      )
-
-      console.log('logout response', res.data)
-      navigate('/admin/login')
-    } catch (error) {
-      console.error('logout error', error)
-    } finally {
-      setLoading(false)
+      await api.post('/api/auth/logout')
+      localStorage.removeItem('accessToken')
+      toast.success('Logged out successfully')
+      window.location.href = '/admin/login'
+    } catch (err) {
+      setLoading(false);
+      toast.error('Logout failed')
     }
   }
 
@@ -164,7 +159,7 @@ export default function Sidebar({ compact = false }) {
 
       <div className="p-2 border-t border-white/10">
         <button
-          onClick={onLogout}
+          onClick={handleLogout}
           disabled={loading}
           className="w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium border border-white/10 bg-transparent text-crm-danger hover:bg-[#EF4444]/10 disabled:opacity-50"
         >
