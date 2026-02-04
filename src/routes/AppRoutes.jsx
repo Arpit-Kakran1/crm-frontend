@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import Home from '../pages/public/Home.jsx'
 import PropertiesList from '../pages/public/PropertiesList.jsx'
 import PropertyDetails from '../pages/public/PropertyDetails.jsx'
+import Contactus from '../pages/public/ContactUs.jsx'
 
 import AdminLogin from '../pages/admin/AdminLogin.jsx'
 import AdminRegister from '../pages/admin/AdminRegister.jsx'
@@ -40,6 +41,7 @@ export default function AppRoutes() {
         <Route index element={<Home />} />
         <Route path="/properties" element={<PropertiesList />} />
         <Route path="/properties/:id" element={<PropertyDetails />} />
+        <Route path="/contact" element={<Contactus />} />
       </Route>
 
 
