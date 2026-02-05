@@ -4,24 +4,25 @@ import api from '../../utils/api.js'
 import Card from '../../components/ui/Card.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Input from '../../components/ui/Input.jsx'
+import { useNavigate } from 'react-router-dom'
 
 const AdminSettings = () => {
-  /* ---------------- LOGOUT ---------------- */
+  const navigate = useNavigate();
   const handleLogout = async () => {
     try {
       await api.post('/api/auth/logout')
     } catch (err) {
-      // ignore backend errors
+
     } finally {
-      // 🔐 REAL LOGOUT (JWT way)
+
       localStorage.removeItem('accessToken')
 
-      // remove token from axios permanently
+
       delete api.defaults.headers.common.Authorization
 
       toast.success('Logged out successfully')
 
-      // hard redirect = safest
+
       window.location.href = '/admin/login'
     }
   }
@@ -66,6 +67,7 @@ const AdminSettings = () => {
           </Button>
         </div>
       </Card>
+
     </div>
   )
 }
