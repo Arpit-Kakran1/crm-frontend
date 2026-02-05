@@ -67,38 +67,36 @@ const AdminEnquiries = () => {
       }),
       "Property": e.propertyId?.title || "-",
       "Name": e.name || "-",
-      "Phone": e.phone ? `${e.phone}` : "-", // prevent Excel auto-format
+      "Phone": e.phone ? `${e.phone}` : "-",
       "Email": e.email || "-",
       "Message": e.message?.replace(/\n|\r/g, " ") || "-"
     }));
 
-    // 2️⃣ Create worksheet
+
     const worksheet = XLSX.utils.json_to_sheet(data);
 
-    // 3️⃣ Column widths (prevents ######)
     worksheet["!cols"] = [
-      { wch: 6 },   // S.No
-      { wch: 14 },  // Date
-      { wch: 32 },  // Property
-      { wch: 20 },  // Name
-      { wch: 16 },  // Phone
-      { wch: 30 },  // Email
-      { wch: 50 },  // Message
+      { wch: 6 },
+      { wch: 14 },
+      { wch: 32 },
+      { wch: 20 },
+      { wch: 16 },
+      { wch: 30 },
+      { wch: 50 },
     ];
 
-    // 4️⃣ Freeze header row
+
     worksheet["!freeze"] = { ySplit: 1 };
 
-    // 5️⃣ Add filter (admin friendly)
+
     worksheet["!autofilter"] = {
       ref: `A1:G${data.length + 1}`
     };
 
-    // 6️⃣ Create workbook
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Enquiries");
 
-    // 7️⃣ Download
+
     XLSX.writeFile(
       workbook,
       `Enquiries_${new Date().toISOString().split("T")[0]}.xlsx`
@@ -108,7 +106,7 @@ const AdminEnquiries = () => {
 
   return (
     <div className="space-y-4">
-      {/* HEADER */}
+
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="text-sm font-semibold text-crm-text">
@@ -127,7 +125,6 @@ const AdminEnquiries = () => {
             onChange={(e) => setQ(e.target.value)}
           />
 
-          {/* DOWNLOAD BUTTON (NEW) */}
           <div className="pt-6">
             <Button
               variant="secondary"
