@@ -9,7 +9,6 @@ const AdminSettings = () => {
   /* ---------------- LOGOUT ---------------- */
   const handleLogout = async () => {
     try {
-      // optional: inform backend (not mandatory for JWT)
       await api.post('/api/auth/logout')
     } catch (err) {
       // ignore backend errors

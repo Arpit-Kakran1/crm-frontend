@@ -30,23 +30,21 @@ export default function Sidebar({ compact = false }) {
     try {
       setLoading(true)
 
-      // optional: call backend (not required for JWT)
+
       await api.post('/api/auth/logout')
 
     } catch (err) {
-      // ignore backend failure for JWT logout
+
     } finally {
-      // 🔥 REAL LOGOUT HAPPENS HERE
+
       localStorage.removeItem('accessToken')
       delete api.defaults.headers.common.Authorization
 
       toast.success('Logged out successfully')
 
-      // hard redirect = safest
       window.location.href = '/admin/login'
     }
   }
-
 
   return (
     <aside className="flex h-full flex-col bg-crm-nav text-white">

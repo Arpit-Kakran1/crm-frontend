@@ -5,6 +5,8 @@ import Input from '../../components/ui/Input.jsx'
 import Button from '../../components/ui/Button.jsx'
 import axios from 'axios'
 import { serverUrl } from '../../utils/serverUrl.js'
+import api from '../../utils/api.js'
+import { toast } from 'react-toastify'
 
 export default function AdminRegister() {
   const navigate = useNavigate()
@@ -23,7 +25,8 @@ export default function AdminRegister() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await axios.post(`${serverUrl}/api/auth/register`, formData, { withCredentials: true });
+      const res = await api.post("/api/auth/register", formData);
+      toast.success("Admin regitered successfully");
       console.log(res);
       setLoading(false)
       navigate("/admin/login")

@@ -6,6 +6,7 @@ import Input from '../../components/ui/Input.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Drawer from '../../components/ui/Drawer.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
+import * as XLSX from "xlsx";
 
 import { serverUrl } from '../../utils/serverUrl.js'
 
@@ -53,45 +54,57 @@ const AdminEnquiries = () => {
 
 
   /* ---------------- DOWNLOAD CSV (NEW) ---------------- */
-  const downloadCSV = () => {
-    if (filteredEnquiries.length === 0) return
+  const downloadExcel = () => {
+    if (!filteredEnquiries || filteredEnquiries.length === 0) return;
 
-    const headers = [
-      'Date',
-      'Property',
-      'Name',
-      'Phone',
-      'Email',
-      'Message',
-    ]
+    // 1️⃣ Prepare clean data
+    const data = filteredEnquiries.map((e, index) => ({
+      "S.No": index + 1,
+      "Date": new Date(e.createdAt).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      "Property": e.propertyId?.title || "-",
+      "Name": e.name || "-",
+      "Phone": e.phone ? `${e.phone}` : "-", // prevent Excel auto-format
+      "Email": e.email || "-",
+      "Message": e.message?.replace(/\n|\r/g, " ") || "-"
+    }));
 
-    const rows = filteredEnquiries.map((e) => [
-      new Date(e.createdAt).toISOString().split('T')[0],
-      e.propertyId?.title || '',
-      e.name,
-      e.phone,
-      e.email,
-      (e.message || '').replace(/\n/g, ' ')
+    // 2️⃣ Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(data);
 
-    ])
+    // 3️⃣ Column widths (prevents ######)
+    worksheet["!cols"] = [
+      { wch: 6 },   // S.No
+      { wch: 14 },  // Date
+      { wch: 32 },  // Property
+      { wch: 20 },  // Name
+      { wch: 16 },  // Phone
+      { wch: 30 },  // Email
+      { wch: 50 },  // Message
+    ];
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row) =>
-        row.map((cell) => `"${cell}"`).join(',')
-      ),
-    ].join('\n')
+    // 4️⃣ Freeze header row
+    worksheet["!freeze"] = { ySplit: 1 };
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
+    // 5️⃣ Add filter (admin friendly)
+    worksheet["!autofilter"] = {
+      ref: `A1:G${data.length + 1}`
+    };
 
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `enquiries_${Date.now()}.csv`
-    link.click()
+    // 6️⃣ Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Enquiries");
 
-    URL.revokeObjectURL(url)
-  }
+    // 7️⃣ Download
+    XLSX.writeFile(
+      workbook,
+      `Enquiries_${new Date().toISOString().split("T")[0]}.xlsx`
+    );
+  };
+
 
   return (
     <div className="space-y-4">
@@ -118,12 +131,13 @@ const AdminEnquiries = () => {
           <div className="pt-6">
             <Button
               variant="secondary"
-              onClick={downloadCSV}
+              onClick={downloadExcel}
               disabled={filteredEnquiries.length === 0}
-              className='cursor-pointer'
+              className="cursor-pointer"
             >
-              Download CSV
+              Download Excel
             </Button>
+
           </div>
         </div>
       </div>
