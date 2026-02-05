@@ -11,7 +11,6 @@ import PropertyDetails from '../pages/public/PropertyDetails.jsx';
 import Contactus from '../pages/public/ContactUs.jsx';
 
 import AdminLogin from '../pages/admin/AdminLogin.jsx';
-import AdminRegister from '../pages/admin/AdminRegister.jsx';
 import AdminDashboard from '../pages/admin/AdminDashboard.jsx';
 import AdminProperties from '../pages/admin/AdminProperties.jsx';
 import AdminEnquiries from '../pages/admin/AdminEnquiries.jsx';
@@ -42,46 +41,6 @@ export default function AppRoutes() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // useEffect(() => {
-  //   const checkUser = async () => {
-  //     try {
-  //       const res = await axios.get(`${serverUrl}/api/auth/me`, {
-  //         withCredentials: true,
-  //       });
-  //       setUser(res.data.user);
-  //     } catch {
-  //       setUser(null);
-  //     }
-  //   };
-  //   checkUser();
-  // }, []);
-
-  // useEffect(() => {
-  //   const checkUser = async () => {
-  //     try {
-  //       const token = localStorage.getItem('accessToken');
-
-  //       if (!token) {
-  //         setUser(null);
-  //         return;
-  //       }
-
-  //       const res = await axios.get(`${serverUrl}/api/auth/me`, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
-
-  //       setUser(res.data.user);
-  //     } catch (err) {
-  //       console.log('Auth check failed');
-  //       setUser(null);
-  //     }
-  //   };
-
-  //   checkUser();
-  // }, []);
-
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -101,7 +60,7 @@ export default function AppRoutes() {
 
   return (
     <Routes>
-      {/* 🌍 PUBLIC */}
+
       <Route element={<PublicLayout />}>
         <Route index element={<Home />} />
         <Route path="/properties" element={<PropertiesList />} />
@@ -114,7 +73,6 @@ export default function AppRoutes() {
         path="/admin/login"
         element={<AdminLogin setUser={setUser} />}
       />
-      <Route path="/admin/register" element={<AdminRegister />} />
 
       {/* 🛡️ ADMIN (PROTECTED) */}
       <Route
